@@ -13,7 +13,8 @@ __PACKAGE__->mk_accessors(
     qw(status)
 );
 __PACKAGE__->mk_ro_accessors(
-    qw(headers_in headers_out err_headers_out method)
+    qw(headers_in headers_out err_headers_out
+       method content response_body pool)
 );
 
 sub new {
@@ -47,6 +48,7 @@ sub _new_from_hash_ref {
         $headers_in->set($key => $value);
     }
     $self->{headers_in} = $headers_in;
+    $self->{pool} = $pool;
 
     if (! defined $self->location) {
         $self->location($self->uri);
@@ -91,8 +93,10 @@ sub hostname {
 }
 
 sub path_info {
-    my ($self) = @_;
-    $self->path; # really?
+    my $self = shift;
+    my $path_info = $self->uri->path;
+    $self->uri->path(shift()) if @_;
+    return $path_info;
 }
 
 sub path {
@@ -111,8 +115,10 @@ sub header_out {
 }
 
 sub content_type {
-    my ($self, $type) = @_;
-    $self->headers_out->set('Content-Type', $type);
+    my $self = shift;
+
+    $self->headers_out->set('Content-Type', shift) if @_;
+    return $self->headers_out->get('Content-Type');
 }
 
 sub send_http_header {
@@ -131,8 +137,10 @@ sub subprocess_env {
 }
 
 sub args {
-    my ($self) = @_;
-
+    my ($self, $value) = @_;
+    if (defined $value) {
+      $self->{_real_uri}->query($value);
+    }
     return $self->{_real_uri}->query;
 }
 
