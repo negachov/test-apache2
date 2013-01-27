@@ -13,7 +13,7 @@ is($request_rec->location, '/bar', 'RequestRec');
     package Handler;
 
     sub handler {
-        my ($self, $req) = @_;
+        my ($req) = @_;
         Test::More::is($req->location, '/foo', 'Server');
     }
 }
